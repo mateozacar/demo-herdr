@@ -194,7 +194,9 @@ SUPERVISOR_PROMPT
 )" > /dev/null
 
 info "Supervisor en control — esperando que complete el pipeline..."
-herdr agent wait supervisor --until idle --timeout 900000
+sleep 3
+herdr agent wait supervisor --until busy  --timeout 30000
+herdr agent wait supervisor --until idle  --timeout 900000
 ok "Pipeline completado"
 
 echo -e "\n${BOLD}${CYAN}"
