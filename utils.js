@@ -36,4 +36,34 @@ function validatePassword(password) {
 // TODO: implement validateEmail(email)
 // Should validate basic email format and return true/false
 
-module.exports = { validateUsername, validatePhone, validatePassword };
+// TODO: implement validateCreditCard(number)
+// Luhn algorithm + card type detection (Visa/Mastercard/Amex)
+// Returns: { valid: boolean, type: string|null, masked: string|null }
+function validateCreditCard(number) {
+  throw new Error("Not implemented");
+}
+
+// TODO: implement validatePasswordStrength(password)
+// Score-based analysis (0-100): length, uppercase, lowercase, numbers, symbols
+// Returns: { valid: boolean, score: number, errors: string[] }
+// valid = score >= 60
+function validatePasswordStrength(password) {
+  throw new Error("Not implemented");
+}
+
+// TODO: implement validateDate(input)
+// Accepts ISO (YYYY-MM-DD), DD/MM/YYYY, MM/DD/YYYY
+// Validates real dates (no Feb 30), auto-detects format
+// Returns: { valid: boolean, normalized: string|null, format: string|null }
+function validateDate(input) {
+  throw new Error("Not implemented");
+}
+
+module.exports = {
+  validateUsername,
+  validatePhone,
+  validatePassword,
+  validateCreditCard,
+  validatePasswordStrength,
+  validateDate,
+};
