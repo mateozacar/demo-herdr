@@ -1,0 +1,11 @@
+{
+  "name": "demo-herdr",
+  "version": "1.0.0",
+  "description": "Demo project for HERDR talk",
+  "scripts": {
+    "test": "jest"
+  },
+  "devDependencies": {
+    "jest": "^29.0.0"
+  }
+}
