@@ -33,7 +33,12 @@ function validatePassword(password) {
   return true;
 }
 
-// TODO: implement validateEmail(email)
-// Should validate basic email format and return true/false
+/**
+ * Validates a basic email format: user@domain.ext
+ */
+function validateEmail(email) {
+  if (typeof email !== "string") return false;
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+}
 
-module.exports = { validateUsername, validatePhone, validatePassword };
+module.exports = { validateUsername, validatePhone, validatePassword, validateEmail };
