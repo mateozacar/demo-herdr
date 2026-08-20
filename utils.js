@@ -33,6 +33,15 @@ function validatePassword(password) {
   return true;
 }
 
+function _checkInput(value, type) {
+  if (value === null || value === undefined) return false;
+  return typeof value === type;
+}
+
+function _result(valid, fields) {
+  return { valid: Boolean(valid), ...(fields || {}) };
+}
+
 // TODO: implement validateEmail(email)
 // Should validate basic email format and return true/false
 
@@ -63,6 +72,8 @@ module.exports = {
   validateUsername,
   validatePhone,
   validatePassword,
+  _checkInput,
+  _result,
   validateCreditCard,
   validatePasswordStrength,
   validateDate,
