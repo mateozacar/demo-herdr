@@ -85,8 +85,7 @@ step 3 "Entregando control al Supervisor Agent"
 info "El supervisor toma las decisiones — el bash solo espera."
 
 herdr agent prompt supervisor "$(cat <<SUPERVISOR_PROMPT
-Sos el supervisor de este pipeline de desarrollo. Tu trabajo es orquestar a los
-demás agentes usando los comandos herdr y git disponibles en tu terminal.
+$(cat "${ROOT}/.agents/supervisor.md")
 
 ━━━ CONTEXTO DEL RUN ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 Run ID:              ${RUN_ID}
@@ -95,20 +94,18 @@ Rama de integración: ${BRANCH_BASE}
 Ramas de workers:    ${BRANCH_CC} | ${BRANCH_PS} | ${BRANCH_DT}
 Worktrees:           ${ROOT}/${WT_CC} | ${ROOT}/${WT_PS} | ${ROOT}/${WT_DT}
 
-Agentes disponibles (usá 'herdr agent prompt <nombre> "..."'):
+Agentes disponibles:
   arquitecto     — escribe código compartido, revisa diffs, crea PRs
   implementador1 — implementa validateCreditCard
   implementador2 — implementa validatePasswordStrength
   implementador3 — implementa validateDate
   qa             — corre tests y reporta resultados
 
-Para esperar que un agente termine: herdr agent wait <nombre> --until idle
-Para leer su output:               herdr agent read <nombre> --source recent-unwrapped --lines 60
-
 ━━━ PIPELINE QUE DEBÉS EJECUTAR ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 FASE 0 — Arquitecto prepara la base
-  Pedile al arquitecto que agregue en utils.js estas dos funciones helpers
+  Leé su rol antes de asignarle la tarea: cat .agents/arquitecto.md
+  Pedile que agregue en utils.js estas dos funciones helpers
   (ANTES de las funciones TODO, después de validatePassword):
 
     function _checkInput(value, type) {
@@ -120,14 +117,8 @@ FASE 0 — Arquitecto prepara la base
     }
 
   Y que exporte _checkInput y _result en module.exports.
+  También que cree CONTEXT.md (su rol en .agents/arquitecto.md describe el contenido).
 
-  También que cree CONTEXT.md con las guidelines para los implementadores:
-  - Usar _checkInput(value, 'string') al inicio
-  - Retornar con _result(valid, { ...campos })
-  - Nunca lanzar excepciones — input inválido retorna _result(false, { campo: null })
-  - Campos opcionales: null cuando no aplican (nunca undefined)
-
-  Importante: el arquitecto NO debe hacer git add ni git commit.
   Una vez que termine, vos (supervisor) hacés:
     git checkout -b ${BRANCH_BASE}
     git add utils.js CONTEXT.md
@@ -140,54 +131,39 @@ FASE 0 — Arquitecto prepara la base
     git worktree add ${ROOT}/${WT_DT} -b ${BRANCH_DT} ${BRANCH_BASE}
 
 FASE 1 — 3 implementadores en paralelo (en sus worktrees)
-  Enviá los 3 prompts seguidos (sin esperar entre ellos), luego esperalos en paralelo:
+  Empezá cada prompt con el rol genérico: cat .agents/implementador.md
+  Enviá los 3 prompts seguidos (sin esperar entre ellos), luego esperalos en paralelo.
 
   implementador1 — validateCreditCard en ${ROOT}/${WT_CC}/utils.js
     - Strippear espacios/guiones
     - Detectar tipo por prefijo: Visa (4), Mastercard (51-55), Amex (34/37)
     - Algoritmo de Luhn para checksum
-    - Retornar { valid, type, masked } usando _result() y _checkInput()
-    - masked: '****-****-****-XXXX'. null si inválido.
-    - Al terminar: npx jest creditcard.test.js en su worktree; si pasa → git add/commit/push
+    - Retornar { valid, type, masked } — masked: '****-****-****-XXXX', null si inválido
 
   implementador2 — validatePasswordStrength en ${ROOT}/${WT_PS}/utils.js
     - Scoring (0-100): longitud>=12: +30 | >=8: +15, mayúscula: +15, minúscula: +15, número: +20, símbolo: +20
     - valid = score >= 60
     - errors: array de strings en español con requisitos no cumplidos
-    - Al terminar: npx jest passwordstrength.test.js; si pasa → git add/commit/push
 
   implementador3 — validateDate en ${ROOT}/${WT_DT}/utils.js
     - Formatos: ISO (YYYY-MM-DD), DD/MM/YYYY, MM/DD/YYYY
     - Detección con barras: primer número >12 → DD/MM; segundo >12 → MM/DD; ambos <=12 → DD/MM
     - Validar fecha real con new Date() verificando que los valores no cambien
-    - Retornar { valid, normalized, format }; normalized: 'YYYY-MM-DD', null si inválido
-    - Al terminar: npx jest date.test.js; si pasa → git add/commit/push
-
-  Para esperar los 3 en paralelo:
-    herdr agent wait implementador1 --until idle --timeout 300000 &
-    herdr agent wait implementador2 --until idle --timeout 300000 &
-    herdr agent wait implementador3 --until idle --timeout 300000 &
-    wait
+    - Retornar { valid, normalized, format } — normalized: 'YYYY-MM-DD', null si inválido
 
 FASE 2 — QA verifica
-  Leé el output de los 3 implementadores y pasáselo a QA.
-  QA debe correr los tests de los 3 worktrees y reportar: tests pasados/fallidos, status OK/FALLA.
+  Leé su rol antes de asignarle la tarea: cat .agents/qa.md
+  Pasale los paths de los 3 worktrees y pedile el reporte.
   Esperá a que QA termine.
 
 FASE 3 — Arquitecto revisa y crea PRs
-  Leé el reporte de QA.
-  Pasáselo al arquitecto junto con instrucciones de:
-    - Revisar el diff de cada implementación aprobada por QA:
+  Leé el reporte de QA y pasáselo al arquitecto (su rol ya lo conoce: .agents/arquitecto.md).
+  Instrucciones adicionales:
+    - Revisar el diff de cada implementación aprobada:
         git -C ${ROOT}/${WT_CC} diff ${BRANCH_BASE} -- utils.js | head -80
-      Verificar que usa _checkInput(), _result(), no lanza excepciones, campos null
-    - Crear PRs hacia ${BRANCH_BASE} (NO hacia main) solo para las que pasen QA Y revisión arquitectural:
+    - Crear PRs hacia ${BRANCH_BASE} (NO hacia main) solo para las que pasen QA y revisión:
         gh pr create --base ${BRANCH_BASE} --head ${BRANCH_CC} --title "..." --body "..."
-  Si alguna no pasa, describirle al arquitecto qué incumple sin crear su PR.
-
-━━━ REGLAS DE ORQUESTACIÓN ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-- Si un agente falla o reporta errores, decidí si reintentás o continuás sin él
-- No avances a la siguiente fase hasta confirmar que la anterior terminó bien
-- Al finalizar, mostrá un resumen con las URLs de los PRs creados
+    - Si alguna no pasa, describir qué incumple sin crear su PR.
 SUPERVISOR_PROMPT
 )" > /dev/null
 
