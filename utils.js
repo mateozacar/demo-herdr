@@ -50,7 +50,42 @@ function _result(valid, fields) {
 // Luhn algorithm + card type detection (Visa/Mastercard/Amex)
 // Returns: { valid: boolean, type: string|null, masked: string|null }
 function validateCreditCard(number) {
-  throw new Error("Not implemented");
+  if (!_checkInput(number, "string")) {
+    return _result(false, { type: null, masked: null });
+  }
+
+  const cleaned = number.replace(/[\s-]/g, "");
+  if (!/^\d+$/.test(cleaned) || cleaned.length < 13 || cleaned.length > 19) {
+    return _result(false, { type: null, masked: null });
+  }
+
+  let type = null;
+  if (/^4/.test(cleaned)) {
+    type = "Visa";
+  } else if (/^5[1-5]/.test(cleaned)) {
+    type = "Mastercard";
+  } else if (/^3[47]/.test(cleaned)) {
+    type = "Amex";
+  }
+
+  // Luhn algorithm checksum
+  let sum = 0;
+  let shouldDouble = false;
+  for (let i = cleaned.length - 1; i >= 0; i--) {
+    let digit = parseInt(cleaned[i], 10);
+    if (shouldDouble) {
+      digit *= 2;
+      if (digit > 9) digit -= 9;
+    }
+    sum += digit;
+    shouldDouble = !shouldDouble;
+  }
+
+  const isLuhnValid = sum % 10 === 0;
+  const valid = isLuhnValid && type !== null;
+  const masked = valid ? `****-****-****-${cleaned.slice(-4)}` : null;
+
+  return _result(valid, { type, masked });
 }
 
 // TODO: implement validatePasswordStrength(password)
