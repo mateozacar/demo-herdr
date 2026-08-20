@@ -195,7 +195,7 @@ SUPERVISOR_PROMPT
 
 info "Supervisor en control — esperando que complete el pipeline..."
 sleep 3
-herdr agent wait supervisor --until busy  --timeout 30000
+herdr agent wait supervisor --until working --timeout 30000
 herdr agent wait supervisor --until idle  --timeout 900000
 ok "Pipeline completado"
 
