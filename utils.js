@@ -61,12 +61,81 @@ function validatePasswordStrength(password) {
   throw new Error("Not implemented");
 }
 
+function _isValidDate(year, month, day) {
+  if (month < 1 || month > 12 || day < 1 || day > 31) return false;
+  const d = new Date(year, month - 1, day);
+  d.setFullYear(year);
+  return (
+    d.getFullYear() === year &&
+    d.getMonth() === month - 1 &&
+    d.getDate() === day
+  );
+}
+
 // TODO: implement validateDate(input)
 // Accepts ISO (YYYY-MM-DD), DD/MM/YYYY, MM/DD/YYYY
 // Validates real dates (no Feb 30), auto-detects format
 // Returns: { valid: boolean, normalized: string|null, format: string|null }
 function validateDate(input) {
-  throw new Error("Not implemented");
+  if (!_checkInput(input, "string")) {
+    return _result(false, { normalized: null, format: null });
+  }
+
+  const isoMatch = input.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (isoMatch) {
+    const year = parseInt(isoMatch[1], 10);
+    const month = parseInt(isoMatch[2], 10);
+    const day = parseInt(isoMatch[3], 10);
+
+    if (_isValidDate(year, month, day)) {
+      const normalized = `${isoMatch[1]}-${isoMatch[2]}-${isoMatch[3]}`;
+      return _result(true, { normalized, format: "ISO" });
+    }
+    return _result(false, { normalized: null, format: null });
+  }
+
+  const slashMatch = input.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+  if (slashMatch) {
+    const first = parseInt(slashMatch[1], 10);
+    const second = parseInt(slashMatch[2], 10);
+    const year = parseInt(slashMatch[3], 10);
+    const yearStr = slashMatch[3];
+
+    if (first > 12 && second <= 12) {
+      const day = first;
+      const month = second;
+      if (_isValidDate(year, month, day)) {
+        const normalized = `${yearStr}-${slashMatch[2]}-${slashMatch[1]}`;
+        return _result(true, { normalized, format: "DD/MM/YYYY" });
+      }
+    } else if (first <= 12 && second > 12) {
+      const month = first;
+      const day = second;
+      if (_isValidDate(year, month, day)) {
+        const normalized = `${yearStr}-${slashMatch[1]}-${slashMatch[2]}`;
+        return _result(true, { normalized, format: "MM/DD/YYYY" });
+      }
+    } else if (first <= 12 && second <= 12) {
+      // Ambos <= 12: intentar DD/MM/YYYY primero
+      const dayDD = first;
+      const monthDD = second;
+      if (_isValidDate(year, monthDD, dayDD)) {
+        const normalized = `${yearStr}-${slashMatch[2]}-${slashMatch[1]}`;
+        return _result(true, { normalized, format: "DD/MM/YYYY" });
+      }
+
+      const monthMM = first;
+      const dayMM = second;
+      if (_isValidDate(year, monthMM, dayMM)) {
+        const normalized = `${yearStr}-${slashMatch[1]}-${slashMatch[2]}`;
+        return _result(true, { normalized, format: "MM/DD/YYYY" });
+      }
+    }
+
+    return _result(false, { normalized: null, format: null });
+  }
+
+  return _result(false, { normalized: null, format: null });
 }
 
 module.exports = {
