@@ -55,14 +55,12 @@ git checkout -- utils.js 2>/dev/null || true
 git checkout -- CONTEXT.md 2>/dev/null || true
 [ -f "CONTEXT.md" ] && git rm --cached CONTEXT.md 2>/dev/null && rm -f CONTEXT.md || true
 
-SCRIPT_PANE="${HERDR_PANE_ID}"
-
-SUPER_PANE=$(herdr pane split --pane "$SCRIPT_PANE"  --direction right --cwd "$ROOT" --no-focus | jq -r '.result.pane.pane_id')
-ARCH_PANE=$(herdr pane split --pane "$SUPER_PANE"    --direction right --cwd "$ROOT" --no-focus | jq -r '.result.pane.pane_id')
-IMPL1_PANE=$(herdr pane split --pane "$ARCH_PANE"    --direction right --cwd "$ROOT" --no-focus | jq -r '.result.pane.pane_id')
-IMPL2_PANE=$(herdr pane split --pane "$IMPL1_PANE"   --direction right --cwd "$ROOT" --no-focus | jq -r '.result.pane.pane_id')
-IMPL3_PANE=$(herdr pane split --pane "$IMPL2_PANE"   --direction right --cwd "$ROOT" --no-focus | jq -r '.result.pane.pane_id')
-QA_PANE=$(herdr pane split --pane "$SUPER_PANE"      --direction down  --cwd "$ROOT" --no-focus | jq -r '.result.pane.pane_id')
+SUPER_PANE=$(herdr tab create  --label "supervisor"     --cwd "$ROOT" --no-focus | jq -r '.result.root_pane.pane_id')
+ARCH_PANE=$(herdr tab create   --label "arquitecto"     --cwd "$ROOT" --no-focus | jq -r '.result.root_pane.pane_id')
+IMPL1_PANE=$(herdr tab create  --label "creditcard"     --cwd "$ROOT" --no-focus | jq -r '.result.root_pane.pane_id')
+IMPL2_PANE=$(herdr tab create  --label "passwordstrength" --cwd "$ROOT" --no-focus | jq -r '.result.root_pane.pane_id')
+IMPL3_PANE=$(herdr tab create  --label "date"           --cwd "$ROOT" --no-focus | jq -r '.result.root_pane.pane_id')
+QA_PANE=$(herdr tab create     --label "qa"             --cwd "$ROOT" --no-focus | jq -r '.result.root_pane.pane_id')
 
 ok "supervisor    (${SUPER_PANE})"
 ok "arquitecto   (${ARCH_PANE})"
