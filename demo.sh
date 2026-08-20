@@ -60,23 +60,23 @@ ok "reviewer listo       (pane ${REVIEWER_PANE})"
 
 # ─── paso 4: tarea para el implementador ────────────────────────────────────
 step 4 "Enviando tarea al implementador"
-info "Implementar validateEmail() y pasar los 6 tests..."
+info "Creando rama, implementando validateEmail(), tests, commit y push..."
 
-PROMPT_IMPL="Implementa la función validateEmail(email) en utils.js: valida formato básico de email (usuario@dominio.ext), retorna true/false, maneja null y valores no-string sin errores. Agrégala al module.exports junto a las otras funciones. Al terminar ejecuta npm test"
+PROMPT_IMPL="Crea una rama llamada feat/validate-email (git checkout -b feat/validate-email). Luego implementa la función validateEmail(email) en utils.js: valida formato básico de email (usuario@dominio.ext), retorna true/false, maneja null y valores no-string sin errores. Agrégala al module.exports junto a las otras funciones. Ejecuta npm test para verificar que los 15 tests pasen. Finalmente haz commit de los cambios (git add utils.js && git commit -m 'feat: implement validateEmail') y haz push al remoto (git push -u origin feat/validate-email)."
 
 herdr agent prompt implementador "$PROMPT_IMPL" --wait --timeout 180000 > /dev/null
 
-ok "implementador terminó"
+ok "implementador terminó (rama pusheada)"
 
-# ─── paso 5: reviewer analiza el diff ────────────────────────────────────────
-step 5 "El reviewer analiza el trabajo del implementador"
-info "Revisando el diff automáticamente..."
+# ─── paso 5: reviewer analiza el diff y crea PR ──────────────────────────────
+step 5 "El reviewer analiza el trabajo y crea el Pull Request"
+info "Revisando cambios, validando tests y creando PR..."
 
-PROMPT_REVIEW="El agente implementador acaba de agregar validateEmail() a utils.js. Ejecuta git diff para ver los cambios y analiza: 1) edge cases no cubiertos por los tests, 2) problemas con la regex si usó una, 3) consistencia con el estilo del resto del archivo. Sé directo y conciso."
+PROMPT_REVIEW="Revisa el trabajo del implementador en la rama feat/validate-email. Ejecuta git log -1 y git diff main...HEAD para analizar los cambios. Ejecuta npm test para confirmar que todos los tests pasen. Si todo está correcto y los tests pasan, crea el Pull Request hacia main usando GitHub CLI: gh pr create --base main --head feat/validate-email --title 'feat: implement validateEmail function' --body 'Implementación de validateEmail con manejo de null/no-strings y paso de suite completa de tests.' y muestra la URL del PR creado."
 
 herdr agent prompt reviewer "$PROMPT_REVIEW" --wait --timeout 180000 > /dev/null
 
-ok "reviewer terminó"
+ok "reviewer terminó (PR creado)"
 
 # ─── resumen ─────────────────────────────────────────────────────────────────
 echo -e "\n${BOLD}${GREEN}"
@@ -84,5 +84,6 @@ echo "╔═══════════════════════�
 echo "║                     Pipeline completado ✓                        ║"
 echo "╚══════════════════════════════════════════════════════════════════╝"
 echo -e "${NC}"
-echo -e "Ver análisis del reviewer:"
+echo -e "Ver Pull Requests y análisis del reviewer:"
+echo -e "  ${CYAN}gh pr list${NC}"
 echo -e "  ${CYAN}herdr agent read reviewer --source recent-unwrapped --lines 50${NC}"
