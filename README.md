@@ -12,7 +12,20 @@ Proyecto de validación de inputs de usuario.
 | `validateEmail(email)` | **TODO** — pendiente de implementar |
 
 ## Correr tests
-
+ 
 ```bash
 npm test
 ```
+
+## Demo HERDR + Antigravity (agy)
+
+Para ejecutar la demo interactiva con dos agentes Antigravity (`agy`):
+
+1. Abre HERDR en este directorio:
+   ```bash
+   herdr
+   ```
+2. Ejecuta el script dentro del pane de HERDR:
+   ```bash
+   ./demo.sh
+   ```
