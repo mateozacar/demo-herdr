@@ -60,12 +60,61 @@ function validatePasswordStrength(password) {
   throw new Error("Not implemented");
 }
 
-// TODO: implement validateDate(input)
-// Accepts ISO (YYYY-MM-DD), DD/MM/YYYY, MM/DD/YYYY
-// Validates real dates (no Feb 30), auto-detects format
-// Returns: { valid: boolean, normalized: string|null, format: string|null }
 function validateDate(input) {
-  throw new Error("Not implemented");
+  if (!_checkInput(input, "string")) {
+    return _result(false, { normalized: null, format: null });
+  }
+
+  let y, month, day, format;
+
+  const isoMatch = input.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  const slashMatch = input.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+
+  if (isoMatch) {
+    y = parseInt(isoMatch[1], 10);
+    month = parseInt(isoMatch[2], 10);
+    day = parseInt(isoMatch[3], 10);
+    format = "ISO";
+  } else if (slashMatch) {
+    const n1 = parseInt(slashMatch[1], 10);
+    const n2 = parseInt(slashMatch[2], 10);
+    y = parseInt(slashMatch[3], 10);
+
+    if (n1 > 12) {
+      day = n1;
+      month = n2;
+      format = "DD/MM/YYYY";
+    } else if (n2 > 12) {
+      month = n1;
+      day = n2;
+      format = "MM/DD/YYYY";
+    } else {
+      day = n1;
+      month = n2;
+      format = "DD/MM/YYYY";
+    }
+  } else {
+    return _result(false, { normalized: null, format: null });
+  }
+
+  if (month < 1 || month > 12 || day < 1 || day > 31) {
+    return _result(false, { normalized: null, format: null });
+  }
+
+  const date = new Date(Date.UTC(y, month - 1, day));
+  if (
+    date.getUTCFullYear() === y &&
+    date.getUTCMonth() === month - 1 &&
+    date.getUTCDate() === day
+  ) {
+    const yStr = String(y).padStart(4, "0");
+    const mStr = String(month).padStart(2, "0");
+    const dStr = String(day).padStart(2, "0");
+    const normalized = `${yStr}-${mStr}-${dStr}`;
+    return _result(true, { normalized, format });
+  }
+
+  return _result(false, { normalized: null, format: null });
 }
 
 module.exports = {
