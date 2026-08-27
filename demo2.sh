@@ -164,9 +164,9 @@ FASE 1 — 3 implementadores en paralelo (en sus worktrees)
     - Al terminar: npx jest date.test.js; si pasa → git add/commit/push
 
   Para esperar los 3 en paralelo:
-    herdr agent wait implementador1 --until idle --timeout 300000 &
-    herdr agent wait implementador2 --until idle --timeout 300000 &
-    herdr agent wait implementador3 --until idle --timeout 300000 &
+    herdr agent wait implementador1 --until idle --timeout 60000 &
+    herdr agent wait implementador2 --until idle --timeout 60000 &
+    herdr agent wait implementador3 --until idle --timeout 60000 &
     wait
 
 FASE 2 — QA verifica en paralelo
@@ -178,7 +178,8 @@ FASE 2 — QA verifica en paralelo
     wait
     cat /tmp/qa_cc.txt /tmp/qa_ps.txt /tmp/qa_dt.txt
   Reportar: tests pasados/fallidos por suite, status OK/FALLA global.
-  Esperá a que QA termine.
+  Esperá a que QA termine:
+    herdr agent wait qa --until idle --timeout 60000
 
 FASE 3 — Arquitecto revisa; supervisor mergea y crea UNA sola PR
   Leé el reporte de QA.
