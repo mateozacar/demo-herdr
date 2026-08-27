@@ -45,11 +45,48 @@ function _result(valid, fields) {
 // TODO: implement validateEmail(email)
 // Should validate basic email format and return true/false
 
-// TODO: implement validateCreditCard(number)
+function _luhnCheck(digits) {
+  let sum = 0;
+  let shouldDouble = false;
+  for (let i = digits.length - 1; i >= 0; i--) {
+    let digit = parseInt(digits.charAt(i), 10);
+    if (shouldDouble) {
+      digit *= 2;
+      if (digit > 9) digit -= 9;
+    }
+    sum += digit;
+    shouldDouble = !shouldDouble;
+  }
+  return sum % 10 === 0;
+}
+
 // Luhn algorithm + card type detection (Visa/Mastercard/Amex)
 // Returns: { valid: boolean, type: string|null, masked: string|null }
 function validateCreditCard(number) {
-  throw new Error("Not implemented");
+  if (!_checkInput(number, "string")) {
+    return _result(false, { type: null, masked: null });
+  }
+
+  const cleaned = number.replace(/[\s-]/g, "");
+  if (!/^\d+$/.test(cleaned)) {
+    return _result(false, { type: null, masked: null });
+  }
+
+  let type = null;
+  if (cleaned.startsWith("4")) {
+    type = "Visa";
+  } else if (/^5[1-5]/.test(cleaned)) {
+    type = "Mastercard";
+  } else if (/^(34|37)/.test(cleaned)) {
+    type = "Amex";
+  }
+
+  if (!type || !_luhnCheck(cleaned)) {
+    return _result(false, { type: null, masked: null });
+  }
+
+  const masked = `****-****-****-${cleaned.slice(-4)}`;
+  return _result(true, { type, masked });
 }
 
 // TODO: implement validatePasswordStrength(password)
