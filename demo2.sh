@@ -169,20 +169,36 @@ FASE 1 — 3 implementadores en paralelo (en sus worktrees)
     herdr agent wait implementador3 --until idle --timeout 300000 &
     wait
 
-FASE 2 — QA verifica
+FASE 2 — QA verifica en paralelo
   Leé el output de los 3 implementadores y pasáselo a QA.
-  QA debe correr los tests de los 3 worktrees y reportar: tests pasados/fallidos, status OK/FALLA.
+  QA debe correr los 3 suites de tests EN PARALELO usando background processes y wait:
+    (cd ${ROOT}/${WT_CC} && npx jest creditcard.test.js --no-coverage 2>&1) > /tmp/qa_cc.txt &
+    (cd ${ROOT}/${WT_PS} && npx jest passwordstrength.test.js --no-coverage 2>&1) > /tmp/qa_ps.txt &
+    (cd ${ROOT}/${WT_DT} && npx jest date.test.js --no-coverage 2>&1) > /tmp/qa_dt.txt &
+    wait
+    cat /tmp/qa_cc.txt /tmp/qa_ps.txt /tmp/qa_dt.txt
+  Reportar: tests pasados/fallidos por suite, status OK/FALLA global.
   Esperá a que QA termine.
 
-FASE 3 — Arquitecto revisa y crea PRs
+FASE 3 — Arquitecto revisa; supervisor mergea y crea UNA sola PR
   Leé el reporte de QA.
   Pasáselo al arquitecto junto con instrucciones de:
     - Revisar el diff de cada implementación aprobada por QA:
         git -C ${ROOT}/${WT_CC} diff ${BRANCH_BASE} -- utils.js | head -80
       Verificar que usa _checkInput(), _result(), no lanza excepciones, campos null
-    - Crear PRs hacia ${BRANCH_BASE} (NO hacia main) solo para las que pasen QA Y revisión arquitectural:
-        gh pr create --base ${BRANCH_BASE} --head ${BRANCH_CC} --title "..." --body "..."
-  Si alguna no pasa, describirle al arquitecto qué incumple sin crear su PR.
+    - Reportar cuáles pasan la revisión arquitectural y cuáles no (sin crear PRs).
+
+  Con el reporte del arquitecto, vos (supervisor) hacés:
+    - Para cada rama que pasó QA Y revisión arquitectural, mergeá a ${BRANCH_BASE}:
+        git merge --no-ff ${BRANCH_CC} -m "merge(${RUN_ID}): creditcard"
+        git merge --no-ff ${BRANCH_PS} -m "merge(${RUN_ID}): passwordstrength"
+        git merge --no-ff ${BRANCH_DT} -m "merge(${RUN_ID}): date"
+        git push origin ${BRANCH_BASE}
+    - Luego creá UNA SOLA PR de ${BRANCH_BASE} hacia main con todas las features:
+        gh pr create --base main --head ${BRANCH_BASE} \
+          --title "feat(${RUN_ID}): add validateCreditCard, validatePasswordStrength, validateDate" \
+          --body "## Features\n- validateCreditCard\n- validatePasswordStrength\n- validateDate\n\nAll tests passing."
+  Si alguna no pasa QA o revisión, excluila del merge y mencionalo en el body de la PR.
 
 ━━━ REGLAS DE ORQUESTACIÓN ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 - Si un agente falla o reporta errores, decidí si reintentás o continuás sin él
