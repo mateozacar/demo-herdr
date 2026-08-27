@@ -52,12 +52,53 @@ function validateCreditCard(number) {
   throw new Error("Not implemented");
 }
 
-// TODO: implement validatePasswordStrength(password)
-// Score-based analysis (0-100): length, uppercase, lowercase, numbers, symbols
-// Returns: { valid: boolean, score: number, errors: string[] }
-// valid = score >= 60
 function validatePasswordStrength(password) {
-  throw new Error("Not implemented");
+  if (!_checkInput(password, "string")) {
+    return _result(false, { score: 0, errors: ["Input inválido"] });
+  }
+
+  let score = 0;
+  const errors = [];
+
+  if (password.length >= 12) {
+    score += 30;
+  } else if (password.length >= 8) {
+    score += 15;
+  } else {
+    errors.push("Debe tener al menos 8 caracteres");
+  }
+
+  if (/[A-Z]/.test(password)) {
+    score += 15;
+  } else {
+    errors.push("Debe contener al menos una letra mayúscula");
+  }
+
+  if (/[a-z]/.test(password)) {
+    score += 15;
+  } else {
+    errors.push("Debe contener al menos una letra minúscula");
+  }
+
+  if (/[0-9]/.test(password)) {
+    score += 20;
+  } else {
+    errors.push("Debe contener al menos un número");
+  }
+
+  if (/[^a-zA-Z0-9]/.test(password)) {
+    score += 20;
+  } else {
+    errors.push("Debe contener al menos un símbolo especial");
+  }
+
+  if (password.length < 8 && score >= 60) {
+    score = 50;
+  }
+
+  const valid = score >= 60;
+
+  return _result(valid, { score, errors });
 }
 
 // TODO: implement validateDate(input)
