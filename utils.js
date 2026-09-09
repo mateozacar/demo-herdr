@@ -65,7 +65,59 @@ function validatePasswordStrength(password) {
 // Validates real dates (no Feb 30), auto-detects format
 // Returns: { valid: boolean, normalized: string|null, format: string|null }
 function validateDate(input) {
-  throw new Error("Not implemented");
+  if (!_checkInput(input, "string")) {
+    return _result(false, { normalized: null, format: null });
+  }
+
+  let year, month, day, format;
+
+  const isoMatch = input.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  const slashMatch = input.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+
+  if (isoMatch) {
+    format = "ISO";
+    year = parseInt(isoMatch[1], 10);
+    month = parseInt(isoMatch[2], 10);
+    day = parseInt(isoMatch[3], 10);
+  } else if (slashMatch) {
+    const n1 = parseInt(slashMatch[1], 10);
+    const n2 = parseInt(slashMatch[2], 10);
+    year = parseInt(slashMatch[3], 10);
+
+    if (n1 > 12) {
+      format = "DD/MM/YYYY";
+      day = n1;
+      month = n2;
+    } else if (n2 > 12) {
+      format = "MM/DD/YYYY";
+      month = n1;
+      day = n2;
+    } else {
+      format = "DD/MM/YYYY";
+      day = n1;
+      month = n2;
+    }
+  } else {
+    return _result(false, { normalized: null, format: null });
+  }
+
+  const d = new Date(year, month - 1, day);
+  d.setFullYear(year);
+
+  const isValid =
+    d.getFullYear() === year &&
+    d.getMonth() === month - 1 &&
+    d.getDate() === day;
+
+  if (!isValid) {
+    return _result(false, { normalized: null, format: null });
+  }
+
+  const pad = (n) => String(n).padStart(2, "0");
+  const padYear = (n) => String(n).padStart(4, "0");
+  const normalized = `${padYear(year)}-${pad(month)}-${pad(day)}`;
+
+  return _result(true, { normalized, format });
 }
 
 module.exports = {
