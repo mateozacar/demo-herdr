@@ -151,12 +151,66 @@ function validatePasswordStrength(password) {
   });
 }
 
-// TODO: implement validateDate(input)
-// Accepts ISO (YYYY-MM-DD), DD/MM/YYYY, MM/DD/YYYY
-// Validates real dates (no Feb 30), auto-detects format
-// Returns: { valid: boolean, normalized: string|null, format: string|null }
+/**
+ * Validates a date string in ISO (YYYY-MM-DD), DD/MM/YYYY, or MM/DD/YYYY format.
+ * Validates real dates (leap years, days per month) and auto-detects format.
+ * Returns: { valid: boolean, normalized: string|null, format: string|null }
+ */
 function validateDate(input) {
-  throw new Error("Not implemented");
+  if (!_checkInput(input, "string")) {
+    return _result(false, { normalized: null, format: null });
+  }
+
+  let year, month, day, detectedFormat;
+
+  if (/^\d{4}-\d{2}-\d{2}$/.test(input)) {
+    const parts = input.split("-");
+    year = parseInt(parts[0], 10);
+    month = parseInt(parts[1], 10);
+    day = parseInt(parts[2], 10);
+    detectedFormat = "ISO";
+  } else if (/^\d{2}\/\d{2}\/\d{4}$/.test(input)) {
+    const parts = input.split("/");
+    const num1 = parseInt(parts[0], 10);
+    const num2 = parseInt(parts[1], 10);
+    year = parseInt(parts[2], 10);
+
+    if (num1 > 12) {
+      detectedFormat = "DD/MM/YYYY";
+      day = num1;
+      month = num2;
+    } else if (num2 > 12) {
+      detectedFormat = "MM/DD/YYYY";
+      month = num1;
+      day = num2;
+    } else {
+      detectedFormat = "DD/MM/YYYY";
+      day = num1;
+      month = num2;
+    }
+  } else {
+    return _result(false, { normalized: null, format: null });
+  }
+
+  const date = new Date(year, month - 1, day);
+  const isValid =
+    date.getFullYear() === year &&
+    date.getMonth() + 1 === month &&
+    date.getDate() === day;
+
+  if (!isValid) {
+    return _result(false, { normalized: null, format: null });
+  }
+
+  const yStr = String(year).padStart(4, "0");
+  const mStr = String(month).padStart(2, "0");
+  const dStr = String(day).padStart(2, "0");
+  const normalized = `${yStr}-${mStr}-${dStr}`;
+
+  return _result(true, {
+    normalized,
+    format: detectedFormat,
+  });
 }
 
 module.exports = {
